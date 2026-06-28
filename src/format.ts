@@ -44,6 +44,19 @@ export function parseIntArg(value: string): number {
   return Number.parseInt(value.trim(), 10);
 }
 
+/**
+ * Commander coercion for the `--limit` option. The API (and the help text)
+ * documents a 1–100 range, so reject out-of-range values client-side with a
+ * clear message instead of forwarding them to the API.
+ */
+export function parseLimit(value: string): number {
+  const n = parseIntArg(value);
+  if (n < 1 || n > 100) {
+    throw new InvalidArgumentError("Expected an integer between 1 and 100.");
+  }
+  return n;
+}
+
 /** Build a human-readable reference like "John 3:16-18" or "Genesis 1". */
 export function formatReference(
   book?: string,
@@ -110,11 +123,21 @@ export function formatTags(res: TagsGet200Response): string {
   return tags.map((t) => `${chalk.bold("#" + (t.name ?? "?"))}`).join("  ");
 }
 
+/**
+ * Recognized HTML tags the API actually emits (verse content uses `<sup>` and
+ * `<p>`), plus common inline formatting. Matching a known tag — rather than any
+ * `<...>` — avoids mangling plain strings that merely contain angle brackets,
+ * e.g. `"see <note> below"`.
+ */
+const HTML_TAG_RE =
+  /<\/?(?:sup|sub|p|div|br|h[1-6]|span|em|strong|b|i|u|a|ul|ol|li|blockquote|q|small|hr)\b[^>]*>/i;
+
 function renderScalar(value: unknown): string {
   if (value === null || value === undefined) return chalk.dim("—");
   if (typeof value === "string") {
-    // Strip HTML so verse content (and any other HTML field) reads cleanly.
-    return /<[^>]+>/.test(value) ? stripHtml(value) : value;
+    // Strip HTML so verse content (and any other HTML field) reads cleanly,
+    // but only when the string actually contains a known HTML tag.
+    return HTML_TAG_RE.test(value) ? stripHtml(value) : value;
   }
   return String(value);
 }

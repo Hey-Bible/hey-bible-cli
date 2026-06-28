@@ -178,4 +178,42 @@ describe("hey-bible CLI", () => {
     expect(process.exitCode).toBe(1);
     expect(err.join("\n")).toMatch(/API key/i);
   });
+
+  it("rejects a negative --limit at the CLI layer without calling the API", async () => {
+    const stderr: string[] = [];
+    const stderrSpy = vi
+      .spyOn(process.stderr, "write")
+      .mockImplementation((chunk: unknown) => {
+        stderr.push(String(chunk));
+        return true;
+      });
+
+    await expect(cli("favorites", "--limit", "-1")).rejects.toMatchObject({
+      code: "commander.invalidArgument",
+      exitCode: 1,
+    });
+
+    expect(h.calls.favoritesGet).toBeUndefined();
+    expect(stderr.join("")).toMatch(/limit/i);
+    stderrSpy.mockRestore();
+  });
+
+  it("rejects an out-of-range --limit (1-100) before calling the API", async () => {
+    const stderr: string[] = [];
+    const stderrSpy = vi
+      .spyOn(process.stderr, "write")
+      .mockImplementation((chunk: unknown) => {
+        stderr.push(String(chunk));
+        return true;
+      });
+
+    await expect(cli("favorites", "--limit", "9999")).rejects.toMatchObject({
+      code: "commander.invalidArgument",
+      exitCode: 1,
+    });
+
+    expect(h.calls.favoritesGet).toBeUndefined();
+    expect(stderr.join("")).toMatch(/1 and 100/);
+    stderrSpy.mockRestore();
+  });
 });

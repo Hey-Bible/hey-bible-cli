@@ -8,6 +8,7 @@ chalk.level = 0;
 import {
   stripHtml,
   parseIntArg,
+  parseLimit,
   formatReference,
   formatVerse,
   formatBibles,
@@ -39,7 +40,7 @@ describe("parseIntArg", () => {
   });
 
   it("rejects negative numbers", () => {
-    // Grok review: --limit -1 etc. should fail client-side with a clear error.
+    // limit/offset/id must be >= 0; reject negatives client-side with a clear error.
     expect(() => parseIntArg("-1")).toThrow(InvalidArgumentError);
   });
 
@@ -48,6 +49,26 @@ describe("parseIntArg", () => {
     expect(() => parseIntArg("abc")).toThrow(InvalidArgumentError);
     expect(() => parseIntArg("16abc")).toThrow(InvalidArgumentError);
     expect(() => parseIntArg("")).toThrow(InvalidArgumentError);
+  });
+});
+
+describe("parseLimit", () => {
+  it("accepts integers within the 1-100 range", () => {
+    expect(parseLimit("1")).toBe(1);
+    expect(parseLimit("50")).toBe(50);
+    expect(parseLimit("100")).toBe(100);
+  });
+
+  it("rejects values outside 1-100", () => {
+    expect(() => parseLimit("0")).toThrow(InvalidArgumentError);
+    expect(() => parseLimit("101")).toThrow(InvalidArgumentError);
+    expect(() => parseLimit("9999")).toThrow(InvalidArgumentError);
+  });
+
+  it("rejects negatives and non-integers", () => {
+    expect(() => parseLimit("-1")).toThrow(InvalidArgumentError);
+    expect(() => parseLimit("abc")).toThrow(InvalidArgumentError);
+    expect(() => parseLimit("1.5")).toThrow(InvalidArgumentError);
   });
 });
 
@@ -130,6 +151,11 @@ describe("renderHuman (generic fallback for complex responses)", () => {
     expect(out).toContain("Genesis");
     expect(out).toContain("In the beginning");
     expect(out).not.toContain("<sup>"); // HTML stripped
+  });
+
+  it("leaves plain strings with stray angle brackets untouched", () => {
+    const out = renderHuman({ note: "see <note> below" });
+    expect(out).toContain("see <note> below"); // not treated as HTML
   });
 
   it("marks empty collections", () => {

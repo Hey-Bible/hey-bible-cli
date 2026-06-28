@@ -10,6 +10,17 @@
  *   hey-bible books --json
  */
 
+import { CommanderError } from "commander";
 import { buildProgram } from "./program.js";
 
-buildProgram().parseAsync(process.argv);
+buildProgram()
+  .parseAsync(process.argv)
+  .catch((err: unknown) => {
+    // Commander uses exitOverride(), so help/version and argument errors arrive
+    // here as CommanderError after the relevant output was already written.
+    if (err instanceof CommanderError) {
+      process.exit(err.exitCode);
+    }
+    console.error(err);
+    process.exit(1);
+  });
