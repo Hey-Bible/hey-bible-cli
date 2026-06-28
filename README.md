@@ -1,3 +1,7 @@
+<p align="center">
+  <img alt="Hey Bible" src="assets/og-image.png" width="1200" />
+</p>
+
 # @hey-bible/cli
 
 > Give your terminal — and your AI agents — access to the Bible.
