@@ -146,6 +146,24 @@ describe("hey-bible CLI", () => {
     expect(h.calls.notesGet).toEqual({ id: 7, limit: undefined, offset: undefined });
   });
 
+  it("images forwards numeric id/limit/offset", async () => {
+    await cli("images", "--id", "42", "--limit", "5", "--json");
+    expect(h.calls.imagesGet).toEqual({ id: 42, limit: 5, offset: undefined });
+  });
+
+  it("chats forwards the UUID id as a string (not coerced)", async () => {
+    await cli("chats", "--id", "uuid-1", "--json");
+    expect(h.calls.chatsGet).toEqual({ id: "uuid-1", limit: undefined, offset: undefined });
+  });
+
+  it("complex commands default to human output, not raw JSON", async () => {
+    await cli("favorites");
+    const text = out.join("\n");
+    expect(h.calls.favoritesGet).toEqual({ tag: undefined, limit: undefined, offset: undefined });
+    expect(text).toContain("favorites");
+    expect(() => JSON.parse(text)).toThrow();
+  });
+
   it("accepts --api-key as a flag", async () => {
     delete process.env.HEY_BIBLE_API_KEY;
     await cli("books", "--api-key", "flag-key", "--json");

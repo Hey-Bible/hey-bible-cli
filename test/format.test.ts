@@ -13,6 +13,7 @@ import {
   formatBibles,
   formatBooks,
   formatTags,
+  renderHuman,
 } from "../src/format.js";
 
 describe("stripHtml", () => {
@@ -31,12 +32,22 @@ describe("stripHtml", () => {
 });
 
 describe("parseIntArg", () => {
-  it("parses integers", () => {
+  it("parses non-negative integers", () => {
     expect(parseIntArg("42")).toBe(42);
+    expect(parseIntArg("0")).toBe(0);
+    expect(parseIntArg("  7 ")).toBe(7);
   });
 
-  it("throws InvalidArgumentError on non-numbers", () => {
+  it("rejects negative numbers", () => {
+    // Grok review: --limit -1 etc. should fail client-side with a clear error.
+    expect(() => parseIntArg("-1")).toThrow(InvalidArgumentError);
+  });
+
+  it("rejects decimals and non-numbers", () => {
+    expect(() => parseIntArg("1.5")).toThrow(InvalidArgumentError);
     expect(() => parseIntArg("abc")).toThrow(InvalidArgumentError);
+    expect(() => parseIntArg("16abc")).toThrow(InvalidArgumentError);
+    expect(() => parseIntArg("")).toThrow(InvalidArgumentError);
   });
 });
 
@@ -107,5 +118,21 @@ describe("list formatters", () => {
     expect(formatBibles({})).toContain("No Bibles");
     expect(formatBooks({})).toContain("No books");
     expect(formatTags({})).toContain("No tags");
+  });
+});
+
+describe("renderHuman (generic fallback for complex responses)", () => {
+  it("renders nested objects readably and strips HTML from values", () => {
+    const out = renderHuman({
+      favorites: [{ book: "Genesis", chapter: 1, content: "<sup>1</sup>In the beginning" }],
+    });
+    expect(out).toContain("favorites");
+    expect(out).toContain("Genesis");
+    expect(out).toContain("In the beginning");
+    expect(out).not.toContain("<sup>"); // HTML stripped
+  });
+
+  it("marks empty collections", () => {
+    expect(renderHuman({ notes: [] })).toContain("(empty)");
   });
 });
