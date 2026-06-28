@@ -97,7 +97,7 @@ List endpoints (`favorites`, `notes`, `images`, `chats`) accept
 ## For AI agents
 
 Pair the CLI with the [`hey-bible` Agent Skill](./skills/hey-bible) (published to
-[ClawHub](https://clawhub.ai)) to give any OpenClaw-compatible agent first-class
+[ClawHub](https://clawhub.ai/hey-bible/skills/hey-bible)) to give any OpenClaw-compatible agent first-class
 access to Scripture. The skill calls this CLI under the hood:
 
 ```bash
