@@ -1,3 +1,7 @@
+<p align="center">
+  <img alt="Hey Bible" src="assets/og-image.png" width="1200" />
+</p>
+
 # @hey-bible/cli
 
 > Give your terminal — and your AI agents — access to the Bible.
@@ -104,6 +108,9 @@ Because every command emits structured JSON with `--json`, the output is trivial
 for an LLM to parse and reason over.
 
 ## Development
+
+Requires Node.js `20.19+` or `22.12+` (the test toolchain pulls in Vite 7). CI
+and releases run on Node 22.
 
 ```bash
 # Install dependencies

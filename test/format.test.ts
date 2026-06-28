@@ -8,11 +8,13 @@ chalk.level = 0;
 import {
   stripHtml,
   parseIntArg,
+  parseLimit,
   formatReference,
   formatVerse,
   formatBibles,
   formatBooks,
   formatTags,
+  renderHuman,
 } from "../src/format.js";
 
 describe("stripHtml", () => {
@@ -31,12 +33,42 @@ describe("stripHtml", () => {
 });
 
 describe("parseIntArg", () => {
-  it("parses integers", () => {
+  it("parses non-negative integers", () => {
     expect(parseIntArg("42")).toBe(42);
+    expect(parseIntArg("0")).toBe(0);
+    expect(parseIntArg("  7 ")).toBe(7);
   });
 
-  it("throws InvalidArgumentError on non-numbers", () => {
+  it("rejects negative numbers", () => {
+    // limit/offset/id must be >= 0; reject negatives client-side with a clear error.
+    expect(() => parseIntArg("-1")).toThrow(InvalidArgumentError);
+  });
+
+  it("rejects decimals and non-numbers", () => {
+    expect(() => parseIntArg("1.5")).toThrow(InvalidArgumentError);
     expect(() => parseIntArg("abc")).toThrow(InvalidArgumentError);
+    expect(() => parseIntArg("16abc")).toThrow(InvalidArgumentError);
+    expect(() => parseIntArg("")).toThrow(InvalidArgumentError);
+  });
+});
+
+describe("parseLimit", () => {
+  it("accepts integers within the 1-100 range", () => {
+    expect(parseLimit("1")).toBe(1);
+    expect(parseLimit("50")).toBe(50);
+    expect(parseLimit("100")).toBe(100);
+  });
+
+  it("rejects values outside 1-100", () => {
+    expect(() => parseLimit("0")).toThrow(InvalidArgumentError);
+    expect(() => parseLimit("101")).toThrow(InvalidArgumentError);
+    expect(() => parseLimit("9999")).toThrow(InvalidArgumentError);
+  });
+
+  it("rejects negatives and non-integers", () => {
+    expect(() => parseLimit("-1")).toThrow(InvalidArgumentError);
+    expect(() => parseLimit("abc")).toThrow(InvalidArgumentError);
+    expect(() => parseLimit("1.5")).toThrow(InvalidArgumentError);
   });
 });
 
@@ -107,5 +139,26 @@ describe("list formatters", () => {
     expect(formatBibles({})).toContain("No Bibles");
     expect(formatBooks({})).toContain("No books");
     expect(formatTags({})).toContain("No tags");
+  });
+});
+
+describe("renderHuman (generic fallback for complex responses)", () => {
+  it("renders nested objects readably and strips HTML from values", () => {
+    const out = renderHuman({
+      favorites: [{ book: "Genesis", chapter: 1, content: "<sup>1</sup>In the beginning" }],
+    });
+    expect(out).toContain("favorites");
+    expect(out).toContain("Genesis");
+    expect(out).toContain("In the beginning");
+    expect(out).not.toContain("<sup>"); // HTML stripped
+  });
+
+  it("leaves plain strings with stray angle brackets untouched", () => {
+    const out = renderHuman({ note: "see <note> below" });
+    expect(out).toContain("see <note> below"); // not treated as HTML
+  });
+
+  it("marks empty collections", () => {
+    expect(renderHuman({ notes: [] })).toContain("(empty)");
   });
 });

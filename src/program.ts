@@ -18,6 +18,7 @@ import {
   formatTags,
   formatVerse,
   parseIntArg,
+  parseLimit,
   printResult,
 } from "./format.js";
 
@@ -64,7 +65,10 @@ export function buildProgram(): Command {
     .option("--api-key <key>", "Hey Bible API key (or set HEY_BIBLE_API_KEY)")
     .option("--api-url <url>", "Override the API base URL (or set HEY_BIBLE_API_URL)")
     .option("--json", "Output raw JSON (recommended for scripts and AI agents)")
-    .showHelpAfterError();
+    .showHelpAfterError()
+    // Throw a CommanderError instead of calling process.exit() directly, so the
+    // entry point owns the exit code and tests can assert on parse failures.
+    .exitOverride();
 
   program
     .command("bibles")
@@ -103,7 +107,7 @@ export function buildProgram(): Command {
     .command("favorites")
     .description("List your favorited verses with notes, images, conversations, and tags")
     .option("-t, --tag <tag>", "Filter favorites by tag name")
-    .option("-l, --limit <n>", "Number to return (1-100)", parseIntArg)
+    .option("-l, --limit <n>", "Number to return (1-100)", parseLimit)
     .option("-o, --offset <n>", "Number to skip for pagination", parseIntArg)
     .action((options, command: Command) =>
       run(command, (api) =>
@@ -115,7 +119,7 @@ export function buildProgram(): Command {
     .command("notes")
     .description("List your verse notes")
     .option("-i, --id <n>", "Specific note ID to retrieve", parseIntArg)
-    .option("-l, --limit <n>", "Number to return (1-100)", parseIntArg)
+    .option("-l, --limit <n>", "Number to return (1-100)", parseLimit)
     .option("-o, --offset <n>", "Number to skip for pagination", parseIntArg)
     .action((options, command: Command) =>
       run(command, (api) =>
@@ -127,7 +131,7 @@ export function buildProgram(): Command {
     .command("images")
     .description("List your AI-generated verse images (use --id for a signed URL)")
     .option("-i, --id <n>", "Specific image ID to retrieve (returns a 24h signed URL)", parseIntArg)
-    .option("-l, --limit <n>", "Number to return (1-100)", parseIntArg)
+    .option("-l, --limit <n>", "Number to return (1-100)", parseLimit)
     .option("-o, --offset <n>", "Number to skip for pagination", parseIntArg)
     .action((options, command: Command) =>
       run(command, (api) =>
@@ -139,7 +143,7 @@ export function buildProgram(): Command {
     .command("chats")
     .description("List your chat conversations with verse context")
     .option("-i, --id <uuid>", "Specific chat ID (UUID) to retrieve with messages")
-    .option("-l, --limit <n>", "Number to return (1-100)", parseIntArg)
+    .option("-l, --limit <n>", "Number to return (1-100)", parseLimit)
     .option("-o, --offset <n>", "Number to skip for pagination", parseIntArg)
     .action((options, command: Command) =>
       run(command, (api) =>
