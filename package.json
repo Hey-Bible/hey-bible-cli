@@ -1,0 +1,59 @@
+{
+  "name": "@hey-bible/cli",
+  "version": "1.0.0",
+  "description": "Command-line interface for the Hey Bible API — give your terminal and AI agents access to Scripture",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "hey-bible": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "cli",
+    "bible",
+    "scripture",
+    "hey-bible",
+    "ai",
+    "agent",
+    "llm",
+    "verses"
+  ],
+  "author": "Hey Bible",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hey-Bible/hey-bible-cli.git"
+  },
+  "homepage": "https://heybible.app",
+  "bugs": {
+    "url": "https://github.com/Hey-Bible/hey-bible-cli/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@hey-bible/client": "^1.1.0",
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "ora": "^8.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
